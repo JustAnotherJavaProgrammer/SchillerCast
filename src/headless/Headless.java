@@ -31,7 +31,10 @@ public class Headless extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	static GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
-	
+	private JLabel lblTitle;
+	private JLabel lblNewLabel;
+	private JLabel lblWaitingForConnections_1;
+	public int stop = 0;
 	
 
 	/**
@@ -97,27 +100,35 @@ public class Headless extends JFrame {
 
 		JLabel lblWaitingForConnections = null;
 		try {
-			lblWaitingForConnections = new JLabel("Waiting for connections...Adress: " + InetAddress.getLocalHost());
+			lblWaitingForConnections_1 = new JLabel("Waiting for connections...Adress: " + InetAddress.getLocalHost());
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		lblWaitingForConnections.setFont(lblWaitingForConnections.getFont().deriveFont(getWidth() / 25f));
-		lblWaitingForConnections.setHorizontalAlignment(SwingConstants.CENTER);
-		contentPane.add(lblWaitingForConnections, BorderLayout.SOUTH);
+		lblWaitingForConnections_1.setFont(lblWaitingForConnections_1.getFont().deriveFont(getWidth() / 25f));
+		lblWaitingForConnections_1.setHorizontalAlignment(SwingConstants.CENTER);
+		contentPane.add(lblWaitingForConnections_1, BorderLayout.SOUTH);
 
-		JLabel lblTitle = new JLabel("WorkTogether-Cast");
+		lblTitle = new JLabel("WorkTogether-Cast");
 		lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		lblTitle.setFont(lblTitle.getFont().deriveFont(Font.BOLD, getWidth() / 10f));
 		contentPane.add(lblTitle, BorderLayout.CENTER);
 
-		JLabel lblNewLabel = new JLabel("Development version - Not yet suitable for use in production");
+		lblNewLabel = new JLabel("Development version - Not yet suitable for use in production");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.TRAILING);
 		contentPane.add(lblNewLabel, BorderLayout.NORTH);
 
 		
 		
-		Server.start();
+		Server.start(this);
 	}
+	
+	
+	public void connected() {
+		lblNewLabel.setVisible(false);
+		lblTitle.setVisible(false);
+		lblWaitingForConnections_1.setVisible(false);
+	}
+	
 
 }

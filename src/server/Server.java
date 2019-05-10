@@ -8,41 +8,45 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-
+import headless.Headless;
 
 public class Server {
 
-	public static void start() {
+	public static void start(Headless main) {
 
-		
 		try {
-			System.out.println("Server Startet on "+InetAddress.getLocalHost());
+			System.out.println("Server Startet on " + InetAddress.getLocalHost());
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 
 				try {
-					ServerSocket ssock = new ServerSocket(4444);
+
+					ServerSocket ssock = new ServerSocket(24444);
 					Socket sock = ssock.accept();
+					main.connected();
 					InputStreamReader ir = new InputStreamReader(sock.getInputStream());
 					BufferedReader bf = new BufferedReader(ir);
-
 					String MESSAGE = bf.readLine();
 					System.out.println(MESSAGE);
+					while(main.stop == 1) {
+						
+					}
 					ssock.close();
+
 				} catch (IOException e) {
 
 					e.printStackTrace();
 				}
 
 			}
-		});
+		}).start();
 
 	}
 
