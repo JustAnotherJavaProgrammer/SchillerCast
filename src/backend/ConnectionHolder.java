@@ -16,7 +16,7 @@ import basicGui.FingerPath;
 
 public class ConnectionHolder extends Thread implements Runnable {
 	private static ConnectionHolder instance;
-	public static final int PORT = 40150;
+	public static final int PORT = 40149;
 	private final ServerSocket socket;
 	private Socket teacher;
 
@@ -174,6 +174,8 @@ public class ConnectionHolder extends Thread implements Runnable {
 			pages.add(new ArrayList<FingerPath>());
 			pageBackgrounds.add(null);
 			teacher = socket.accept();
+			if (connectionListener != null)
+				connectionListener.connectionEstablished();
 			readLines(teacher.getInputStream(), new InputStreamReadLineResultListener() {
 
 				@Override
@@ -235,7 +237,9 @@ public class ConnectionHolder extends Thread implements Runnable {
 
 				@Override
 				public void onError(IOException e) {
-
+					if (connectionListener != null)
+						connectionListener.onDisconnect();
+					disconnect();
 				}
 			});
 		} catch (IOException e) {

@@ -58,9 +58,9 @@ public class DrawingView extends JPanel {
 	}
 	
 	@Override
-	public void setSize(int width, int height) {
-		super.setSize(width, height);
-		changeDocumentBounds(width, height, false);
+	public void invalidate() {
+		super.invalidate();
+		changeDocumentBounds(getWidth(), getHeight(), false);
 	}
 	
 	public void changeDocumentBounds(int w, int h, boolean forceRescale) {

@@ -10,8 +10,13 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 
+import backend.ConnectionHolder;
+import backend.ConnectionListener;
+import backend.TeacherChangedDrawingListener;
+import backend.WaitingForTeacher;
+import basicGui.DrawingView;
 import mdlaf.MaterialLookAndFeel;
-import top.gigabox.supportcomponent.toast.MaterialTost;
+//import top.gigabox.supportcomponent.toast.MaterialTost;
 
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -28,8 +33,11 @@ public class Headless extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
+	private JPanel waitingForConnections;
 	static GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
+	private ConnectionHolder connectionHolder = ConnectionHolder.getInstance();
+	private DrawingView drawingView = new DrawingView();
+	private WaitingForTeacher waitingForTeacher = new WaitingForTeacher();
 
 	/**
 	 * Launch the application.
@@ -53,17 +61,19 @@ public class Headless extends JFrame {
 	public Headless() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		addKeyListener(new KeyListener() {
-			
+
 			@Override
-			public void keyTyped(KeyEvent e) {}
-			
+			public void keyTyped(KeyEvent e) {
+			}
+
 			@Override
 			public void keyReleased(KeyEvent e) {
 				System.exit(0);
 			}
-			
+
 			@Override
-			public void keyPressed(KeyEvent e) {}
+			public void keyPressed(KeyEvent e) {
+			}
 		});
 		try {
 			UIManager.setLookAndFeel(new MaterialLookAndFeel());
@@ -75,10 +85,10 @@ public class Headless extends JFrame {
 		if (device.isFullScreenSupported())
 			device.setFullScreenWindow(this);
 
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
+		waitingForConnections = new JPanel();
+		waitingForConnections.setBorder(new EmptyBorder(5, 5, 5, 5));
+		waitingForConnections.setLayout(new BorderLayout(0, 0));
+		setContentPane(waitingForConnections);
 
 		JLabel lblWaitingForConnections;
 		try {
@@ -90,18 +100,45 @@ public class Headless extends JFrame {
 		}
 		lblWaitingForConnections.setFont(lblWaitingForConnections.getFont().deriveFont(getWidth() / 25f));
 		lblWaitingForConnections.setHorizontalAlignment(SwingConstants.CENTER);
-		contentPane.add(lblWaitingForConnections, BorderLayout.SOUTH);
+		waitingForConnections.add(lblWaitingForConnections, BorderLayout.SOUTH);
 
 		JLabel lblTitle = new JLabel("WorkTogether-Cast");
 		lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		lblTitle.setFont(lblTitle.getFont().deriveFont(Font.BOLD, getWidth() / 10f));
-		contentPane.add(lblTitle, BorderLayout.CENTER);
+		waitingForConnections.add(lblTitle, BorderLayout.CENTER);
 
 		JLabel lblNewLabel = new JLabel("Development version - Not yet suitable for use in production");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-		contentPane.add(lblNewLabel, BorderLayout.NORTH);
-		
-		// TODO init ConnectionHolder
+		waitingForConnections.add(lblNewLabel, BorderLayout.NORTH);
+
+		// init ConnectionHolder
+		connectionHolder.setConnectionListener(new ConnectionListener() {
+
+			@Override
+			public void onDisconnect() {
+				setContentPane(waitingForConnections);
+			}
+
+			@Override
+			public void connectionEstablished() {
+				if (!getContentPane().equals(drawingView))
+					setContentPane(waitingForTeacher);
+			}
+		});
+
+		connectionHolder.setDrawingStateListener(new TeacherChangedDrawingListener() {
+
+			@Override
+			public void onTeacherStoppedDrawing() {
+				setContentPane(waitingForTeacher);
+			}
+
+			@Override
+			public void onTeacherStartedDrawing() {
+				setContentPane(drawingView);
+			}
+		});
+		connectionHolder.start();
 	}
 
 }
