@@ -100,7 +100,8 @@ public class Headless extends JFrame {
 		JLabel lblNewLabel = new JLabel("Development version - Not yet suitable for use in production");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.TRAILING);
 		contentPane.add(lblNewLabel, BorderLayout.NORTH);
-
+		
+		// TODO init ConnectionHolder
 	}
 
 }
