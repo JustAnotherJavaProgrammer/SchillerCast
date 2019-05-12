@@ -45,48 +45,26 @@ public class Server {
 		pagescolor.add(c);
 		ArrayList<Integer> d = new ArrayList<>();
 		pagesstoke.add(d);
-
-		try {
-			System.out.println("Server Startet on " + InetAddress.getLocalHost());
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
 		new Thread(new Runnable() {
-
 			@Override
 			public void run() {
-
 				try {
-
 					ServerSocket ssock = new ServerSocket(4444);
 					Socket sock = ssock.accept();
 					main.connected();
-
 					InputStreamReader ir = new InputStreamReader(sock.getInputStream());
 					BufferedReader bf = new BufferedReader(ir);
 					while (main.stop == 0) {
 						String input = bf.readLine();
 						input(input, main);
-						System.out.println(input);
 					}
 					ssock.close();
-
 				} catch (IOException e) {
 
 					e.printStackTrace();
 				}
-
 			}
 		}).start();
-
-		// Pages in ArrayList speichern und benutzen Pages = arraylist welche alle
-		// strokes oder buffered images enthalten enthalten
-		// Bei app unter Fingerpath nach Seriliseble path suchen und code am besten
-		// kopieren
-		//
-//		
 
 	}
 
@@ -125,7 +103,11 @@ public class Server {
 		} else if (result.startsWith("ud")) {
 			int pageNO = Integer.parseInt(result.split(" ", 2)[1].trim());
 			if (pages.get(pageNO).size() > 0)
-				pages.get(pageNO).remove(pages.get(pageNO).size() - 1);
+				pagesmode.get(pageNO).remove(pagesmode.get(pageNO).size() - 1);
+			pagescolor.get(pageNO).remove(pagescolor.get(pageNO).size() - 1);
+			pagesstoke.get(pageNO).remove(pagesstoke.get(pageNO).size() - 1);
+			pages.get(pageNO).remove(pages.get(pageNO).size() - 1);
+			refresh(pageNO, main);
 		} else if (result.startsWith("cl")) {
 			int pageNO = Integer.parseInt(result.split(" ", 2)[1].trim());
 			pages.get(pageNO).clear();
@@ -203,7 +185,6 @@ public class Server {
 
 			g2d.draw(curpage.get(j));
 		}
-		g2d.drawString("test", 50, 50);
 		main.contentPane.setBackground(i);
 	}
 
