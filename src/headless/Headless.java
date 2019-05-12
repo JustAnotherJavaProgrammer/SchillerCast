@@ -32,7 +32,7 @@ public class Headless extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private JBackgroundPanel contentPane;
+	public JBackgroundPanel contentPane;
 	static GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
 	private JLabel lblTitle;
 	private JLabel lblNewLabel;
