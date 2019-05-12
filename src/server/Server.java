@@ -3,25 +3,14 @@ package server;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.PaintContext;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-
-import com.sun.corba.se.spi.orbutil.fsm.Input;
 
 import headless.Headless;
 
@@ -31,6 +20,7 @@ public class Server {
 	private static ArrayList<ArrayList<String>> pagescolor = new ArrayList<>();
 	private static ArrayList<ArrayList<Integer>> pagesstoke = new ArrayList<>();
 	private static ArrayList<ArrayList<Integer>> pagesmode = new ArrayList<>();
+	private static ArrayList<BufferedImage> backs = new ArrayList<>();
 	private static int witdh;
 	private static int hieth;
 	private static int curpage = 0;
@@ -45,6 +35,8 @@ public class Server {
 		pagescolor.add(c);
 		ArrayList<Integer> d = new ArrayList<>();
 		pagesstoke.add(d);
+		BufferedImage e = new BufferedImage(1, 1,BufferedImage.TYPE_3BYTE_BGR);
+		backs.add(e);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -57,6 +49,7 @@ public class Server {
 					while (main.stop == 0) {
 						String input = bf.readLine();
 						input(input, main);
+						System.out.println(input);
 					}
 					ssock.close();
 				} catch (IOException e) {
@@ -125,6 +118,8 @@ public class Server {
 			pagescolor.add(color);
 			pagesstoke.add(stoke);
 			pagesmode.add(mode);
+			BufferedImage e = new BufferedImage(1, 1,BufferedImage.TYPE_3BYTE_BGR);
+			backs.add(e);
 			pages.add(newpage);
 			refresh(curpage, main);
 		} else if (result.startsWith("rp")) {
@@ -133,6 +128,7 @@ public class Server {
 			pagesmode.remove(pageNo);
 			pagescolor.remove(pageNo);
 			pagesstoke.remove(pageNo);
+			backs.remove(pageNo);
 			curpage = pageNo - 1;
 			refresh(pageNo - 1, main);
 		} else if (result.startsWith("tgtp")) {
@@ -146,6 +142,28 @@ public class Server {
 			witdh = Integer.parseInt(args[1]);
 			hieth = Integer.parseInt(args[2]);
 		}
+		else if (result.startsWith("spb")) {
+			System.out.println("test");
+			int pageNo = Integer.parseInt(result.split(" ", 3)[1].trim());
+			System.out.println(result);
+			String[] args = result.split(" ");
+			System.out.println(args[0]);
+			System.out.println(args[1]);
+			System.out.println(args[2]);
+//		try {
+//			 byte[] data = Base64.decode(args[2].getBytes());
+//			 ByteArrayInputStream bis = new ByteArrayInputStream(data);
+//			 BufferedImage bImage2 = ImageIO.read(bis);
+//			 backs.set(pageNo,bImage2);
+//		} catch (Base64DecodingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//			refresh(pageNo,main);
+	}
 
 	}
 
@@ -168,8 +186,9 @@ public class Server {
 
 		BufferedImage i = new BufferedImage(witdh, hieth, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = i.createGraphics();
-
+		
 		ArrayList<GeneralPath> curpage = pages.get(page);
+		g2d.drawImage(backs.get(page), 0, 0, null);
 		for (int j = 0; j < curpage.size(); j++) {
 			g2d.setStroke(new BasicStroke(pagesstoke.get(page).get(j)));
 			if (pagesmode.get(page).get(j) == 1) {
