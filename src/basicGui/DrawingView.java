@@ -1,19 +1,25 @@
 package basicGui;
 
+import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.RenderingHints.Key;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
+
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 import backend.ConnectionHolder;
 import backend.PathsChangedListener;
 
-public class DrawingView extends JPanel {
+public class DrawingView extends Canvas {
 
 	/**
 	 * 
@@ -22,7 +28,6 @@ public class DrawingView extends JPanel {
 
 	private ConnectionHolder connectionHolder = ConnectionHolder.getInstance();
 
-	FingerPath currentPath;
 	BufferedImage cache;
 	Graphics2D cacheCanvas;
 	public static Color BACKGROUND_COLOR = Color.WHITE;
@@ -34,54 +39,76 @@ public class DrawingView extends JPanel {
 	private int height = -1;
 	private int width = -1;
 
+	HashMap<Key, Object> renderingHints = new HashMap<>();
+
 	public DrawingView() {
 		bckg = Color.LIGHT_GRAY;
+		setBackground(bckg);
+		renderingHints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		renderingHints.put(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+		renderingHints.put(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		renderingHints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		renderingHints.put(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+		renderingHints.put(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		changeDocumentBounds(getWidth(), getHeight(), true);
 		connectionHolder.setDrawingListener(new PathsChangedListener() {
-
 			@Override
 			public void onRescaleRequired() {
-				rescale();
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						rescale();
+					}
+				});
 			}
 
 			@Override
 			public void onRepaintRequired() {
-				refresh();
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						refresh();
+					}
+				});
 			}
 
 			@Override
 			public void onPathAdded(FingerPath addedPath) {
-				addedPath.drawPath(cacheCanvas, scale, 0, 0);
-				repaint();
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						if (cacheCanvas != null)
+							addedPath.drawPath(cacheCanvas, scale);
+						repaint();
+					}
+				});
 			}
 		});
+		setVisible(true);
 	}
-	
-	@Override
-	public void invalidate() {
-		super.invalidate();
-		changeDocumentBounds(getWidth(), getHeight(), false);
-	}
-	
+
 	public void changeDocumentBounds(int w, int h, boolean forceRescale) {
-        if (w != width || h != height || forceRescale) {
-            width = w;
-            height = h;
-            rescale();
-        }
-    }
+		if (w != width || h != height || forceRescale) {
+			width = w;
+			height = h;
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					rescale();
+				}
+			});
+		}
+	}
 
 	public void rescale() {
 		Rectangle teacherBounds = connectionHolder.getRemoteTeacherBounds();
 		if (teacherBounds == null)
 			teacherBounds = new Rectangle(0, 0, width, height);
 		if (width >= 0 && height >= 0) {
-			scale = (float) (height) / (float) (teacherBounds.getHeight());
-			if (teacherBounds.getWidth() * scale > width) {
-				scale = (float) (width) / (float) (teacherBounds.getWidth());
-			}
+			scale = Math.min((float) (height) / (float) (teacherBounds.getHeight()),
+					(float) (width) / (float) (teacherBounds.getWidth()));
 			offsetX = (int) ((width - (teacherBounds.getWidth() * scale)) / 2);
-			offsetY = (int) ((height - (teacherBounds.getWidth() * scale)) / 2);
+			offsetY = (int) ((height - (teacherBounds.getHeight() * scale)) / 2);
 		} else {
 			scale = 1;
 			offsetX = 0;
@@ -92,22 +119,24 @@ public class DrawingView extends JPanel {
 			cache = new BufferedImage((int) (teacherBounds.getWidth() * scale),
 					(int) (teacherBounds.getHeight() * scale), BufferedImage.TYPE_INT_ARGB);
 			cacheCanvas = cache.createGraphics();
+			cacheCanvas.setRenderingHints(renderingHints);
 		}
 		refresh();
 	}
 
 	@Override
 	public void paint(Graphics canvas) {
-		canvas.setColor(bckg);
-		canvas.drawRect(0, 0, width, height);
-		if (cache != null)
-			canvas.drawImage(cache, offsetX, offsetY, null, null);
-		if (currentPath != null)
-			currentPath.drawPath((Graphics2D) canvas, scale, offsetX, offsetY);
+		super.paint(canvas);
+		if (canvas != null && cache != null) {
+			Graphics2D canvas2D = (Graphics2D) canvas;
+			canvas2D.setRenderingHints(renderingHints);
+			canvas2D.drawImage(cache, offsetX, offsetY, null, null);
+		}
 	}
 
 	protected void redrawCache(Graphics2D cacheCanvas) {
 		if (cacheCanvas != null) {
+			cacheCanvas.setColor(BACKGROUND_COLOR);
 			cacheCanvas.fillRect(0, 0, cache.getWidth(), cache.getHeight());
 			if (connectionHolder.getCurrentPageBackground() != null) {
 				BufferedImage background = connectionHolder.getCurrentPageBackground();
@@ -120,7 +149,7 @@ public class DrawingView extends JPanel {
 			}
 			FingerPath[] currentPage = connectionHolder.getCurrentPage().toArray(new FingerPath[] {});
 			for (FingerPath fp : currentPage) {
-				fp.drawPath(cacheCanvas, scale, 0, 0);
+				fp.drawPath(cacheCanvas, scale);
 			}
 		}
 	}
@@ -128,6 +157,12 @@ public class DrawingView extends JPanel {
 	public void refresh() {
 		redrawCache(cacheCanvas);
 		repaint();
+	}
+
+	@Override
+	public void validate() {
+		super.validate();
+		changeDocumentBounds(getWidth(), getHeight(), false);
 	}
 
 	// Bitmaps

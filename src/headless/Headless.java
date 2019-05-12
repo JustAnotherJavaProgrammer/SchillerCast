@@ -12,6 +12,7 @@ import javax.swing.border.EmptyBorder;
 
 import backend.ConnectionHolder;
 import backend.ConnectionListener;
+import backend.JContentPanel;
 import backend.TeacherChangedDrawingListener;
 import backend.WaitingForTeacher;
 import basicGui.DrawingView;
@@ -20,6 +21,8 @@ import mdlaf.MaterialLookAndFeel;
 
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyEvent;
@@ -37,6 +40,7 @@ public class Headless extends JFrame {
 	static GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
 	private ConnectionHolder connectionHolder = ConnectionHolder.getInstance();
 	private DrawingView drawingView = new DrawingView();
+	private JContentPanel drawingViewContainer = new JContentPanel(drawingView);
 	private WaitingForTeacher waitingForTeacher = new WaitingForTeacher();
 
 	/**
@@ -77,6 +81,8 @@ public class Headless extends JFrame {
 		});
 		try {
 			UIManager.setLookAndFeel(new MaterialLookAndFeel());
+			SwingUtilities.updateComponentTreeUI(waitingForTeacher);
+			SwingUtilities.updateComponentTreeUI(drawingViewContainer);
 		} catch (UnsupportedLookAndFeelException e) {
 			e.printStackTrace();
 		}
@@ -116,13 +122,22 @@ public class Headless extends JFrame {
 
 			@Override
 			public void onDisconnect() {
-				setContentPane(waitingForConnections);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						setContentPane(waitingForConnections);
+						validate();
+					}
+				});
 			}
 
 			@Override
 			public void connectionEstablished() {
-				if (!getContentPane().equals(drawingView))
-					setContentPane(waitingForTeacher);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						setContentPane(waitingForTeacher);
+						validate();
+					}
+				});
 			}
 		});
 
@@ -130,12 +145,23 @@ public class Headless extends JFrame {
 
 			@Override
 			public void onTeacherStoppedDrawing() {
-				setContentPane(waitingForTeacher);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						setContentPane(waitingForTeacher);
+						validate();
+					}
+				});
 			}
 
 			@Override
 			public void onTeacherStartedDrawing() {
-				setContentPane(drawingView);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						setContentPane(drawingViewContainer);
+						validate();
+						// drawingView.redraw(drawingView.getGraphics());
+					}
+				});
 			}
 		});
 		connectionHolder.start();

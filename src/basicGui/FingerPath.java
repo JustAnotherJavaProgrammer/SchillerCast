@@ -3,8 +3,11 @@ package basicGui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
+import java.util.HashMap;
 
 public class FingerPath {
 	public static final int PENCIL_MODE_STANDARD = 0;
@@ -36,7 +39,7 @@ public class FingerPath {
 				BasicStroke.JOIN_ROUND);
 	}
 
-	public void drawPath(Graphics2D canvas, float scale, int offX, int offY) {
+	public void drawPath(Graphics2D canvas, float scale) {
 //	        Log.d("FingerPath", "scale: " + scale);
 		Color c = pencilMode == PENCIL_MODE_ERASER ? DrawingView.BACKGROUND_COLOR : this.color;
 		canvas.setColor(
@@ -49,7 +52,6 @@ public class FingerPath {
 			GeneralPath path = new GeneralPath(this.path);
 			AffineTransform scaleMatrix = new AffineTransform();
 			scaleMatrix.setToScale(scale, scale);
-			scaleMatrix.translate(offX, offY);
 			path.transform(scaleMatrix);
 			canvas.draw(path);
 		}

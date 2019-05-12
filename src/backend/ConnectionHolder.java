@@ -16,7 +16,7 @@ import basicGui.FingerPath;
 
 public class ConnectionHolder extends Thread implements Runnable {
 	private static ConnectionHolder instance;
-	public static final int PORT = 40149;
+	public static final int PORT = 49150;
 	private final ServerSocket socket;
 	private Socket teacher;
 
@@ -150,6 +150,8 @@ public class ConnectionHolder extends Thread implements Runnable {
 		if (currentPage != teacherPage && currentPage >= 0 && currentPage < pages.size()
 				&& currentPage == teacherPage) {
 			teacherPage = currentPage;
+			if (drawingListener != null)
+				drawingListener.onRepaintRequired();
 		}
 	}
 
@@ -181,7 +183,6 @@ public class ConnectionHolder extends Thread implements Runnable {
 				@Override
 				public void onSuccess(String result) {
 					if (INTENTIONAL_DISCONNECT.equals(result)) {
-						teacher = null;
 						if (connectionListener != null)
 							connectionListener.onDisconnect();
 						disconnect();
@@ -198,11 +199,14 @@ public class ConnectionHolder extends Thread implements Runnable {
 								if (drawingListener != null)
 									drawingListener.onRepaintRequired();
 							} else if (result.startsWith(TEACHER_CHANGED_PAGE)) {
-								teacherPage = Integer.parseInt(result.split(" ")[1].trim());
-								setCurrentPage(teacherPage);
+								setCurrentPage(Integer.parseInt(result.split(" ")[1].trim()));
 							} else if (result.startsWith(ADD_PERMANENT_PATH)) {
 								String[] args = result.split(" ", 3);
-								pages.get(Integer.parseInt(args[1].trim())).add(new FingerPath(args[2].trim()));
+								int page = Integer.parseInt(args[1].trim());
+								FingerPath path = new FingerPath(args[2].trim());
+								pages.get(page).add(path);
+								if (drawingListener != null && page == teacherPage)
+									drawingListener.onPathAdded(path);
 							} else if (result.startsWith(UNDO)) {
 								int page = Integer.parseInt(result.split(" ", 2)[1].trim());
 								if (pages.get(page).size() > 0) {
@@ -246,27 +250,28 @@ public class ConnectionHolder extends Thread implements Runnable {
 			e.printStackTrace();
 			System.exit(1);
 		}
+		run();
 	}
 
 	public static void readLines(final InputStream in, final InputStreamReadLineResultListener resultCallback) {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-					while (true) {
-						String line = reader.readLine();
-						if (resultCallback != null)
-							resultCallback.onSuccess(line);
-						if (line.equals(INTENTIONAL_DISCONNECT))
-							break;
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-					if (resultCallback != null)
-						resultCallback.onError(e);
-				}
+//		new Thread(new Runnable() {
+//			@Override
+//			public void run() {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+			while (true) {
+				String line = reader.readLine();
+				if (resultCallback != null && line != null)
+					resultCallback.onSuccess(line);
+				if (INTENTIONAL_DISCONNECT.equals(line))
+					break;
 			}
-		}).start();
+		} catch (IOException e) {
+			e.printStackTrace();
+			if (resultCallback != null)
+				resultCallback.onError(e);
+		}
+//			}
+//		}).start();
 	}
 }
