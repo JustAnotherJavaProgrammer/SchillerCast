@@ -196,7 +196,7 @@ public class ConnectionHolder extends Thread implements Runnable {
 								teacherBounds = new Rectangle(0, 0, Integer.parseInt(args[1]),
 										Integer.parseInt(args[2]));
 								if (drawingListener != null)
-									drawingListener.onRepaintRequired();
+									drawingListener.onRescaleRequired();
 							} else if (result.startsWith(TEACHER_CHANGED_PAGE)) {
 								setCurrentPage(Integer.parseInt(result.split(" ")[1].trim()));
 							} else if (result.startsWith(ADD_PERMANENT_PATH)) {
