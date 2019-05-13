@@ -124,6 +124,7 @@ public class Headless extends JFrame {
 			public void onDisconnect() {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
+						System.out.println("Disconnected");
 						setContentPane(waitingForConnections);
 						validate();
 					}

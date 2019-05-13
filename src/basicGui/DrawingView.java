@@ -140,10 +140,10 @@ public class DrawingView extends Canvas {
 			cacheCanvas.fillRect(0, 0, cache.getWidth(), cache.getHeight());
 			if (connectionHolder.getCurrentPageBackground() != null) {
 				BufferedImage background = connectionHolder.getCurrentPageBackground();
-				float scale = Math.min((float) (height) / (float) (background.getHeight()),
-						(float) (width) / (float) (background.getWidth()));
-				int x = (int) ((width - (background.getWidth() * scale)) / 2);
-				int y = (int) ((height - (background.getHeight() * scale)) / 2);
+				float scale = Math.min((float) (cache.getHeight()) / (float) (background.getHeight()),
+						(float) (cache.getWidth()) / (float) (background.getWidth()));
+				int x = (int) ((cache.getWidth() - (background.getWidth() * scale)) / 2);
+				int y = (int) ((cache.getHeight() - (background.getHeight() * scale)) / 2);
 				cacheCanvas.drawImage(background, x, y, (int) (background.getWidth() * scale),
 						(int) (background.getHeight() * scale), null, null);
 			}

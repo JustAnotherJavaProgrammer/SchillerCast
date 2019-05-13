@@ -128,9 +128,9 @@ public class ConnectionHolder extends Thread implements Runnable {
 	protected void removePage(int pageNo) {
 		if (teacherPage == pageNo) {
 			if (teacherPage == pages.size() - 1) {
-				teacherPage--;
+				setCurrentPage(teacherPage - 1);
 			} else {
-				teacherPage++;
+				setCurrentPage(teacherPage + 1);
 			}
 		}
 		if (teacherPage == pageNo) {
@@ -143,7 +143,7 @@ public class ConnectionHolder extends Thread implements Runnable {
 		pages.remove(pageNo);
 		pageBackgrounds.remove(pageNo);
 		if (teacherPage > pageNo)
-			teacherPage--;
+			setCurrentPage(teacherPage - 1);
 	}
 
 	public void setCurrentPage(int currentPage) {
