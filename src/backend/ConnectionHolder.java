@@ -147,8 +147,7 @@ public class ConnectionHolder extends Thread implements Runnable {
 	}
 
 	public void setCurrentPage(int currentPage) {
-		if (currentPage != teacherPage && currentPage >= 0 && currentPage < pages.size()
-				&& currentPage == teacherPage) {
+		if (currentPage != teacherPage && currentPage >= 0 && currentPage < pages.size()) {
 			teacherPage = currentPage;
 			if (drawingListener != null)
 				drawingListener.onRepaintRequired();
