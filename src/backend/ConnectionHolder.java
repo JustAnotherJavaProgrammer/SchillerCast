@@ -28,7 +28,6 @@ public class ConnectionHolder extends Thread implements Runnable {
 	public static final String ADD_PERMANENT_PATH = "pp"; // usage: ADD_PERMANENT_PATH + " " + pageNo + " " +
 															// fingerPath.toString()
 	public static final String UNDO = "ud"; // + pageNo
-	public static final String REDO = "rd"; // For use in messages to the server/teacher only!
 	public static final String CLEAR = "cl"; // + pageNo
 	public static final String ADD_PAGE = "ap"; // + previousPageNo
 	public static final String REMOVE_PAGE = "rp"; // + pageNo
