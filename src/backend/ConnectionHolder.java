@@ -32,6 +32,7 @@ public class ConnectionHolder extends Thread implements Runnable {
 	public static final String ADD_PAGE = "ap"; // + previousPageNo
 	public static final String REMOVE_PAGE = "rp"; // + pageNo
 	public static final String SET_PAGE_BACKGROUND = "spb"; // + pageNO + BitmapToString
+	public static final String DUPLICATE_PAGE = "dp"; // + pageNo
 
 	private TeacherChangedDrawingListener drawingStateListener;
 	private PathsChangedListener drawingListener;
@@ -145,6 +146,27 @@ public class ConnectionHolder extends Thread implements Runnable {
 			setCurrentPage(teacherPage - 1);
 	}
 
+	protected void duplicPage(int pageNo) {
+		ArrayList<FingerPath> newPage = new ArrayList<>();
+		try {
+			ArrayList<FingerPath> oldPage = pages.get(pageNo);
+			newPage.addAll(oldPage);
+		} catch (IndexOutOfBoundsException | NullPointerException e) {
+			e.printStackTrace();
+		}
+		try {
+			if (pages.size() >= pageNo) {
+				pages.add(pageNo + 1, newPage);
+				pageBackgrounds.add(pageNo + 1, pageBackgrounds.get(pageNo));
+			} else {
+				pages.add(pages.size(), newPage);
+				pageBackgrounds.add(pages.size(), null);
+			}
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void setCurrentPage(int currentPage) {
 		if (currentPage != teacherPage && currentPage >= 0 && currentPage < pages.size()) {
 			teacherPage = currentPage;
@@ -230,6 +252,9 @@ public class ConnectionHolder extends Thread implements Runnable {
 								pageBackgrounds.set(page, DrawingView.StringToBitmap(args[2].trim()));
 								if (page == teacherPage && drawingListener != null)
 									drawingListener.onRepaintRequired();
+							} else if (result.startsWith(DUPLICATE_PAGE)) {
+								int pageNo = Integer.parseInt(result.split(" ", 2)[1].trim());
+								duplicPage(pageNo);
 							}
 						} catch (ArrayIndexOutOfBoundsException e) {
 							System.err.println("ExceptionDetails: " + result);
