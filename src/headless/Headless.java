@@ -72,7 +72,8 @@ public class Headless extends JFrame {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				System.exit(0);
+				if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+					System.exit(0);
 			}
 
 			@Override
